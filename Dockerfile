@@ -161,7 +161,8 @@ RUN mkdir -p storage/framework/cache/data \
     database \
     && touch storage/logs/laravel.log \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache database \
+    && chown -R www-data:www-data storage \
+    && chmod -R 2770 storage bootstrap/cache database \
     && chmod 664 storage/logs/laravel.log
 
 # Copy enterprise deployment scripts
