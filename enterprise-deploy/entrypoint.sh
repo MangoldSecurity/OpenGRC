@@ -49,7 +49,7 @@ echo "All required environment variables are set."
 #############################################
 
 # Build the deploy command with all required parameters
-DEPLOY_CMD="sudo -u www-data php artisan opengrc:deploy"
+DEPLOY_CMD="php artisan opengrc:deploy"
 DEPLOY_CMD="$DEPLOY_CMD --db-driver=\"${DB_CONNECTION}\""
 DEPLOY_CMD="$DEPLOY_CMD --db-host=\"${DB_HOST}\""
 DEPLOY_CMD="$DEPLOY_CMD --db-port=\"${DB_PORT}\""
@@ -119,16 +119,16 @@ fi
 echo "Running post-deployment optimizations..."
 
 # Clear and rebuild cache
-sudo -u www-data php artisan config:cache
-sudo -u www-data php artisan route:cache
-sudo -u www-data php artisan view:cache
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 echo "Cache optimization complete."
 
 # Link storage (if not already linked)
 if [ ! -L "/var/www/html/public/storage" ]; then
     echo "Linking public storage..."
-    sudo -u www-data php artisan storage:link
+    php artisan storage:link
 fi
 
 #############################################
