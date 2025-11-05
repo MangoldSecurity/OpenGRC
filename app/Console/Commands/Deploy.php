@@ -699,9 +699,9 @@ class Deploy extends Command
 
         // Set production permissions (skip in containerized environments)
         // Detect container environment: no node_modules means pre-built Docker image
-        // $isContainer = !file_exists(base_path('node_modules'));
+        $isContainer = !file_exists(base_path('node_modules'));
 
-        if (PHP_OS === 'Linux'){ //} && !$isContainer) {
+        if (PHP_OS === 'Linux' && !$isContainer) {
             $this->info('[INFO] Setting file permissions...');
 
             // Check if set_permissions script exists and run it
