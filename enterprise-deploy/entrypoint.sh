@@ -113,6 +113,33 @@ else
 fi
 
 #############################################
+# POST-DEPLOYMENT: Session Configuration
+#############################################
+
+echo "Configuring session settings..."
+
+# Update .env file with session configuration
+if [ -f .env ]; then
+    # Set session driver to database
+    if grep -q "^SESSION_DRIVER=" .env; then
+        sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=database/' .env
+    else
+        echo "SESSION_DRIVER=database" >> .env
+    fi
+
+    # Set session lifetime to 24 hours (1440 minutes)
+    if grep -q "^SESSION_LIFETIME=" .env; then
+        sed -i 's/^SESSION_LIFETIME=.*/SESSION_LIFETIME=1440/' .env
+    else
+        echo "SESSION_LIFETIME=1440" >> .env
+    fi
+
+    echo "Session configuration updated: driver=database, lifetime=24 hours"
+else
+    echo "WARNING: .env file not found, cannot configure sessions"
+fi
+
+#############################################
 # POST-DEPLOYMENT: Cache and Optimization
 #############################################
 
