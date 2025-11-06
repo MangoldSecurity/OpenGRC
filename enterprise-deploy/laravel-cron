@@ -1,6 +1,6 @@
 # Laravel Scheduler - runs every minute
 * * * * * www-data cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
 
-# Laravel Queue Worker - runs every minute with 30 minute timeout, stops when empty
-* * * * * www-data cd /var/www/html && php artisan queue:work >> /dev/null 2>&1
+# Laravel Queue Worker - runs every minute with 30 minute timeout, stops when empty (only if not already running)
+#* * * * * www-data pgrep -f "artisan queue:work" > /dev/null || (cd /var/www/html && php artisan queue:work >> /dev/null 2>&1)
 
