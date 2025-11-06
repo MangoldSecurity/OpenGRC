@@ -19,6 +19,13 @@ class ExportAuditEvidenceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 1800; // 30 minutes
+
     protected $auditId;
 
     protected $userId;
