@@ -33,10 +33,10 @@ RUN apt-get update && apt-get install -y \
     # ModSecurity2 Install
     libapache2-mod-security2 \
     modsecurity-crs \
-    # PHP and extensions
+    # PHP and extensions (including Apache module)
     php${PHP_VERSION} \
     php${PHP_VERSION}-cli \
-    php${PHP_VERSION}-fpm \
+    libapache2-mod-php${PHP_VERSION} \
     php${PHP_VERSION}-common \
     php${PHP_VERSION}-mysql \
     php${PHP_VERSION}-sqlite3 \
@@ -76,39 +76,42 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configure PHP-FPM pool for performance (optimized for 1GB container)
-RUN sed -i 's/pm = dynamic/pm = ondemand/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && sed -i 's/pm.max_children = .*/pm.max_children = 20/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && sed -i 's/;pm.process_idle_timeout = .*/pm.process_idle_timeout = 10s/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && sed -i 's/;pm.max_requests = .*/pm.max_requests = 500/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && sed -i 's/;request_terminate_timeout = .*/request_terminate_timeout = 600/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
-    && sed -i 's/upload_max_filesize = .*/upload_max_filesize = 20M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
-    && sed -i 's/post_max_size = .*/post_max_size = 20M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
-    && sed -i 's/max_execution_time = .*/max_execution_time = 600/' /etc/php/${PHP_VERSION}/fpm/php.ini \
-    && sed -i 's/max_input_time = .*/max_input_time = 600/' /etc/php/${PHP_VERSION}/fpm/php.ini
+# Configure PHP for Apache module (optimized for 1GB container)
+RUN sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/upload_max_filesize = .*/upload_max_filesize = 20M/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/post_max_size = .*/post_max_size = 20M/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/max_execution_time = .*/max_execution_time = 600/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/max_input_time = .*/max_input_time = 600/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.enable=.*/opcache.enable=1/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.memory_consumption=.*/opcache.memory_consumption=128/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=8/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.max_accelerated_files=.*/opcache.max_accelerated_files=10000/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.validate_timestamps=.*/opcache.validate_timestamps=0/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.save_comments=.*/opcache.save_comments=1/' /etc/php/${PHP_VERSION}/apache2/php.ini
 
 # Configure PHP CLI for long-running queue jobs
 RUN sed -i 's/max_execution_time = .*/max_execution_time = 0/' /etc/php/${PHP_VERSION}/cli/php.ini \
     && sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/${PHP_VERSION}/cli/php.ini
 
-# Configure PHP-FPM to log to file (for rsyslog forwarding)
-RUN sed -i 's|;error_log = log/php8.3-fpm.log|error_log = /var/log/php8.3-fpm.log|' /etc/php/${PHP_VERSION}/fpm/php-fpm.conf \
-    && sed -i 's|;catch_workers_output = yes|catch_workers_output = yes|' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+# Configure PHP error logging for Apache
+RUN sed -i 's|;error_log = .*|error_log = /var/log/php_errors.log|' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && touch /var/log/php_errors.log \
+    && chown www-data:www-data /var/log/php_errors.log
 
-# Enable Apache modules for PHP-FPM
+# Enable Apache modules for mod_php
 RUN a2enmod rewrite \
     && a2enmod headers \
     && a2enmod expires \
     && a2enmod ssl \
-    && a2enmod proxy \
-    && a2enmod proxy_fcgi \
     && a2enmod setenvif \
     && a2enmod remoteip \
-    && a2dismod mpm_prefork \
-    && a2enmod mpm_event \
-    && a2enmod security2 \    
-    && a2enconf php${PHP_VERSION}-fpm
+    && a2enmod php${PHP_VERSION} \
+    && a2dismod mpm_event \
+    && a2enmod mpm_prefork \
+    && a2enmod security2 \
+    && a2enmod deflate \
+    && a2enmod cache \
+    && a2enmod cache_disk
 
 # Configure RemoteIP to trust DigitalOcean load balancer
 RUN echo '# Trust DigitalOcean load balancer for X-Forwarded-For\n\
