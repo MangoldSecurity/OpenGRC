@@ -81,10 +81,16 @@ RUN sed -i 's/pm = dynamic/pm = ondemand/' /etc/php/${PHP_VERSION}/fpm/pool.d/ww
     && sed -i 's/pm.max_children = .*/pm.max_children = 20/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
     && sed -i 's/;pm.process_idle_timeout = .*/pm.process_idle_timeout = 10s/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
     && sed -i 's/;pm.max_requests = .*/pm.max_requests = 500/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
+    && sed -i 's/;request_terminate_timeout = .*/request_terminate_timeout = 600/' /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
     && sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
     && sed -i 's/upload_max_filesize = .*/upload_max_filesize = 20M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
     && sed -i 's/post_max_size = .*/post_max_size = 20M/' /etc/php/${PHP_VERSION}/fpm/php.ini \
-    && sed -i 's/max_execution_time = .*/max_execution_time = 60/' /etc/php/${PHP_VERSION}/fpm/php.ini
+    && sed -i 's/max_execution_time = .*/max_execution_time = 600/' /etc/php/${PHP_VERSION}/fpm/php.ini \
+    && sed -i 's/max_input_time = .*/max_input_time = 600/' /etc/php/${PHP_VERSION}/fpm/php.ini
+
+# Configure PHP CLI for long-running queue jobs
+RUN sed -i 's/max_execution_time = .*/max_execution_time = 0/' /etc/php/${PHP_VERSION}/cli/php.ini \
+    && sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/${PHP_VERSION}/cli/php.ini
 
 # Configure PHP-FPM to log to file (for rsyslog forwarding)
 RUN sed -i 's|;error_log = log/php8.3-fpm.log|error_log = /var/log/php8.3-fpm.log|' /etc/php/${PHP_VERSION}/fpm/php-fpm.conf \
