@@ -81,7 +81,13 @@ RUN sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/${PHP_VERSION}/ap
     && sed -i 's/upload_max_filesize = .*/upload_max_filesize = 20M/' /etc/php/${PHP_VERSION}/apache2/php.ini \
     && sed -i 's/post_max_size = .*/post_max_size = 20M/' /etc/php/${PHP_VERSION}/apache2/php.ini \
     && sed -i 's/max_execution_time = .*/max_execution_time = 600/' /etc/php/${PHP_VERSION}/apache2/php.ini \
-    && sed -i 's/max_input_time = .*/max_input_time = 600/' /etc/php/${PHP_VERSION}/apache2/php.ini
+    && sed -i 's/max_input_time = .*/max_input_time = 600/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.enable=.*/opcache.enable=1/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.memory_consumption=.*/opcache.memory_consumption=128/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=8/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.max_accelerated_files=.*/opcache.max_accelerated_files=10000/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.validate_timestamps=.*/opcache.validate_timestamps=0/' /etc/php/${PHP_VERSION}/apache2/php.ini \
+    && sed -i 's/;opcache.save_comments=.*/opcache.save_comments=1/' /etc/php/${PHP_VERSION}/apache2/php.ini
 
 # Configure PHP CLI for long-running queue jobs
 RUN sed -i 's/max_execution_time = .*/max_execution_time = 0/' /etc/php/${PHP_VERSION}/cli/php.ini \
@@ -102,7 +108,10 @@ RUN a2enmod rewrite \
     && a2enmod php${PHP_VERSION} \
     && a2dismod mpm_event \
     && a2enmod mpm_prefork \
-    && a2enmod security2
+    && a2enmod security2 \
+    && a2enmod deflate \
+    && a2enmod cache \
+    && a2enmod cache_disk
 
 # Configure RemoteIP to trust DigitalOcean load balancer
 RUN echo '# Trust DigitalOcean load balancer for X-Forwarded-For\n\
