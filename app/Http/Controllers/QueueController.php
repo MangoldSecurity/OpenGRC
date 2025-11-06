@@ -42,7 +42,7 @@ class QueueController extends Controller
     {
         // Use shell command to start queue worker as a true background process
         $command = sprintf(
-            'nohup %s %s queue:work --daemon --tries=3 --timeout=300 > /dev/null 2>&1 &',
+            'nohup %s %s queue:work --daemon --tries=3 > /dev/null 2>&1 &',
             PHP_BINARY,
             base_path('artisan')
         );
