@@ -62,6 +62,7 @@ RUN apt-get update && apt-get install -y \
     rsyslog \
     net-tools \
     ghostscript \
+    supervisor \
     jq \
     # Security scanning
     yara \
@@ -231,6 +232,13 @@ RUN chmod 0644 /etc/cron.d/laravel-cron \
     && /var/www/html/enterprise-deploy/setup-cron.sh \
     && /var/www/html/enterprise-deploy/setup-fim-cron.sh \
     && /var/www/html/enterprise-deploy/setup-yara-cron.sh
+
+# Create supervisor config
+RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor
+
+# Copy supervisor config
+COPY enterprise-deploy/supervisord.conf /etc/supervisor/supervisord.conf
+
 
 # Expose port 80 (DigitalOcean load balancer forwards to this port)
 EXPOSE 80
