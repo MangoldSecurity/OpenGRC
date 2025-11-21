@@ -62,6 +62,7 @@ RUN apt-get update && apt-get install -y \
     rsyslog \
     net-tools \
     ghostscript \
+    supervisor \
     jq \
     # Security scanning
     yara \
