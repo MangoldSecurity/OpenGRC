@@ -237,7 +237,7 @@ RUN chmod 0644 /etc/cron.d/laravel-cron \
 RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor
 
 # Copy supervisor config
-COPY /var/www/html/enterprise-deploy/supervisord.conf /etc/supervisor/supervisord.conf
+COPY enterprise-deploy/supervisord.conf /etc/supervisor/supervisord.conf
 
 
 # Expose port 80 (DigitalOcean load balancer forwards to this port)
